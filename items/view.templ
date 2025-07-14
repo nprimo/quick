@@ -1,0 +1,16 @@
+package items
+
+templ ViewItems(items []Item) {
+	<ul>
+		for _, item := range items {
+			<li>{ item.Name }</li>
+		}
+	</ul>
+}
+
+templ ViewItem(item Item) {
+	<div>
+		{ item.Name }
+		{ item.Quantity }
+	</div>
+}
