@@ -18,8 +18,9 @@ func Router(
 		w.Write([]byte(`ciao mamma`))
 	})
 
-	mux.HandleFunc("/items", itemHandler.ListItems)
-	wrapped := LoggerMiddleware(mux, log)
+	mux.HandleFunc("GET /items", itemHandler.ListItems)
+	mux.HandleFunc("GET /items/{id}", itemHandler.GetItem)
 
+	wrapped := LoggerMiddleware(mux, log)
 	return wrapped
 }

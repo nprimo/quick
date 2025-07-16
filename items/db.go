@@ -52,4 +52,3 @@ func (s *DBStore) Delete(ctx context.Context, id int) error {
 	_, err := s.db.ExecContext(ctx, "DELETE FROM items WHERE id = ?", id)
 	return err
 }
-
