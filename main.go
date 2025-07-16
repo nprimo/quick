@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"log/slog"
 	"net/http"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -29,7 +30,7 @@ func main() {
 
 	itemsStore := items.NewDBStore(db)
 	itemsHandler := items.NewHandler(itemsStore)
+	log := slog.New(&slog.JSONHandler{})
 
-	http.ListenAndServe(":4321", web.Router(itemsHandler))
+	http.ListenAndServe(":4321", web.Router(itemsHandler, log))
 }
-
