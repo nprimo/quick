@@ -2,33 +2,30 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	"log/slog"
 	"net/http"
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/nprimo/quick/db"
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/web"
 )
 
 func main() {
-	db, err := sql.Open("sqlite3", ":memory:")
+	dbConn, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: make this a migration
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER)`)
-	if err != nil {
-		log.Fatal(err)
+	if err := db.Init(dbConn); err != nil {
+		panic(err)
 	}
-	_, err = db.Exec(`insert into items(name, quantity) values('banana', 1)`)
-	if err != nil {
-		log.Fatal(err)
+	if err := db.Seed(dbConn); err != nil {
+		panic(err)
 	}
 
-	itemsStore := items.NewDBStore(db)
+	itemsStore := items.NewDBStore(dbConn)
 	itemsHandler := items.NewHandler(itemsStore)
 	log := slog.New(&slog.JSONHandler{})
 
