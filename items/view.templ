@@ -1,11 +1,13 @@
 package items
 
 templ ViewItems(items []Item) {
-	<ul>
-		for _, item := range items {
-			<li>{ item.Name }</li>
-		}
-	</ul>
+	<div>
+		<ul>
+			for _, item := range items {
+				<li>{ item.Name }</li>
+			}
+		</ul>
+	</div>
 }
 
 templ ViewItem(item Item) {
