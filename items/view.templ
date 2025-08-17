@@ -7,6 +7,9 @@ templ ViewItems(items []Item) {
 				<li>{ item.Name }</li>
 			}
 		</ul>
+		<button>
+			<a href="/items/new">Add item</a>
+		</button>
 	</div>
 }
 
@@ -14,5 +17,17 @@ templ ViewItem(item Item) {
 	<div>
 		{ item.Name }
 		{ item.Quantity }
+	</div>
+}
+
+templ AddItem(item Item) {
+	<div>
+		<form action="/items/new" method="post">
+			<label for="name">Item name:</label>
+			<input type="text" name="name" id="name" required/>
+			<label for="quantity">Item quantity:</label>
+			<input type="number" name="quantity" id="quantity" required/>
+			<input type="submit" value="Add"/>
+		</form>
 	</div>
 }

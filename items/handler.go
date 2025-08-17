@@ -48,3 +48,37 @@ func (h *Handler) GetItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
+	item := Item{}
+	if err := AddItem(item).Render(r.Context(), w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) AddItemPost(w http.ResponseWriter, r *http.Request) {
+	item, err := getItemFromForm(r)
+	if err != nil {
+		status := http.StatusBadRequest
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	if err := h.store.Add(r.Context(), item); err != nil {
+		status := http.StatusInternalServerError
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	http.Redirect(w, r, "/items", http.StatusFound)
+}
+
+func getItemFromForm(r *http.Request) (Item, error) {
+	name := r.FormValue("name")
+	quantityStr := r.FormValue("quantity")
+	quantity, err := strconv.ParseInt(quantityStr, 10, 64)
+	if err != nil {
+		return Item{}, err
+	}
+	item := Item{Name: name, Quantity: int(quantity)}
+	return item, nil
+}
