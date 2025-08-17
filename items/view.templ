@@ -4,7 +4,7 @@ templ ViewItems(items []Item) {
 	<div>
 		<ul>
 			for _, item := range items {
-				<li>{ item.Name }</li>
+				<li>{ item.Name } - { item.Quantity }</li>
 			}
 		</ul>
 		<button>
