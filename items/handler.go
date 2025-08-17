@@ -3,6 +3,7 @@ package items
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -109,6 +110,23 @@ func (h *Handler) UpdateItemPost(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.store.Update(r.Context(), id, item); err != nil {
 		// TODO: propagate error
+		status := http.StatusInternalServerError
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	http.Redirect(w, r, "/items", http.StatusFound)
+}
+
+func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("ciao mamma")
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := h.store.Delete(r.Context(), id); err != nil {
+		//TODO: propagate error
 		status := http.StatusInternalServerError
 		http.Error(w, http.StatusText(status), status)
 		return

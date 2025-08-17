@@ -11,6 +11,9 @@ templ ViewItems(items []Item) {
 					<button>
 						<a href={ templ.SafeURL(fmt.Sprintf("items/%d/update", item.ID)) }>Update</a>
 					</button>
+					<button>
+						<a href={ templ.SafeURL(fmt.Sprintf("items/%d/delete", item.ID)) }>Delete</a>
+					</button>
 				</li>
 			}
 		</ul>
