@@ -1,10 +1,17 @@
 package items
 
+import "fmt"
+
 templ ViewItems(items []Item) {
 	<div>
 		<ul>
 			for _, item := range items {
-				<li>{ item.Name } - { item.Quantity }</li>
+				<li>
+					{ item.Name } - { item.Quantity }
+					<button>
+						<a href={ templ.SafeURL(fmt.Sprintf("items/%d/update", item.ID)) }>Update</a>
+					</button>
+				</li>
 			}
 		</ul>
 		<button>
@@ -28,6 +35,18 @@ templ AddItem(item Item) {
 			<label for="quantity">Item quantity:</label>
 			<input type="number" name="quantity" id="quantity" required/>
 			<input type="submit" value="Add"/>
+		</form>
+	</div>
+}
+
+templ UpdateItem(item Item) {
+	<div>
+		<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post">
+			<label for="name">Item name:</label>
+			<input type="text" name="name" id="name" value={ item.Name } required/>
+			<label for="quantity">Item quantity:</label>
+			<input type="number" name="quantity" id="quantity" value={ item.Quantity } required/>
+			<input type="submit" value="Update"/>
 		</form>
 	</div>
 }

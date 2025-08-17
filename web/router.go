@@ -20,6 +20,9 @@ func Router(
 
 	mux.HandleFunc("GET /items", itemHandler.ListItems)
 	mux.HandleFunc("GET /items/{id}", itemHandler.GetItem)
+	mux.HandleFunc("GET /items/{id}/update", itemHandler.UpdateItem)
+	mux.HandleFunc("POST /items/{id}", itemHandler.UpdateItemPost)
+
 	mux.HandleFunc("GET /items/new", itemHandler.AddItem)
 	mux.HandleFunc("POST /items/new", itemHandler.AddItemPost)
 

@@ -72,6 +72,50 @@ func (h *Handler) AddItemPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/items", http.StatusFound)
 }
 
+func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	item, err := h.store.Get(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := UpdateItem(item).Render(r.Context(), w); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) UpdateItemPost(w http.ResponseWriter, r *http.Request) {
+	item, err := getItemFromForm(r)
+	if err != nil {
+		status := http.StatusBadRequest
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	idStr := r.PathValue("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := h.store.Update(r.Context(), id, item); err != nil {
+		// TODO: propagate error
+		status := http.StatusInternalServerError
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	http.Redirect(w, r, "/items", http.StatusFound)
+}
+
 func getItemFromForm(r *http.Request) (Item, error) {
 	name := r.FormValue("name")
 	quantityStr := r.FormValue("quantity")
