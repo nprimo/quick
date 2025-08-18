@@ -3,21 +3,26 @@ package items
 import (
 	"database/sql"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
+
+	"github.com/nprimo/quick/api"
 )
 
 type Handler struct {
 	store Store
+	log   *slog.Logger
 }
 
-func NewHandler(store Store) Handler {
-	return Handler{store: store}
+func NewHandler(store Store, log *slog.Logger) Handler {
+	return Handler{store: store, log: log}
 }
 
 func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) {
 	items, err := h.store.All(r.Context())
 	if err != nil {
+		api.HandleError(r.Context(), w, err, http.StatusInternalServerError, h.log)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

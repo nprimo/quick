@@ -25,9 +25,10 @@ func main() {
 		panic(err)
 	}
 
-	itemsStore := items.NewDBStore(dbConn)
-	itemsHandler := items.NewHandler(itemsStore)
 	log := slog.New(&slog.JSONHandler{})
+
+	itemsStore := items.NewDBStore(dbConn)
+	itemsHandler := items.NewHandler(itemsStore, log)
 
 	server := http.Server{
 		Addr:         ":4321",
