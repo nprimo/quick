@@ -3,7 +3,6 @@ package items
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -32,7 +31,7 @@ func (h *Handler) GetItem(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	item, err := h.store.Get(r.Context(), id)
@@ -118,7 +117,6 @@ func (h *Handler) UpdateItemPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("ciao mamma")
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"log/slog"
 	"net/http"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/nprimo/quick/db"
 	"github.com/nprimo/quick/items"
-	"github.com/nprimo/quick/web"
 )
 
 func main() {
@@ -29,5 +29,15 @@ func main() {
 	itemsHandler := items.NewHandler(itemsStore)
 	log := slog.New(&slog.JSONHandler{})
 
-	http.ListenAndServe(":4321", web.Router(itemsHandler, log))
+	server := http.Server{
+		Addr:         ":4321",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		Handler:      Router(itemsHandler, log),
+	}
+
+	if err := server.ListenAndServe(); err != nil {
+		log.Error("failed to listen and serve",
+			"error", err)
+	}
 }

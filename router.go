@@ -1,10 +1,11 @@
-package web
+package main
 
 import (
 	"log/slog"
 	"net/http"
 
 	"github.com/nprimo/quick/items"
+	"github.com/nprimo/quick/middleware"
 )
 
 func Router(
@@ -29,6 +30,6 @@ func Router(
 	mux.HandleFunc("GET /items/new", itemHandler.AddItem)
 	mux.HandleFunc("POST /items/new", itemHandler.AddItemPost)
 
-	wrapped := LoggerMiddleware(mux, log)
+	wrapped := middleware.Logger(mux, log)
 	return wrapped
 }
