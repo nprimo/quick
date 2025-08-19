@@ -22,8 +22,15 @@ func Router(
 	mux := http.NewServeMux()
 
 	errorHandler := web.ErrorHandler(log)
-	basicChain := middleware.New(middleware.Logger(log), middleware.Session(sessionStore))
-	protectedChain := basicChain.Append(middleware.RequireLogin)
+	basicChain := middleware.New(
+		// middleware.CORS(allowedOrigins, allowedMethods, allowedHeaders), // CORS first
+		middleware.Logger(log),
+		middleware.Session(sessionStore),
+	)
+	protectedChain := basicChain.Append(
+		middleware.RequireLogin,
+		middleware.CSRF(sessionStore),
+	)
 
 	// Public routes
 	mux.Handle("/", basicChain.Then(errorHandler(func(w http.ResponseWriter, r *http.Request) error {

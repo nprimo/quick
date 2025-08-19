@@ -1,0 +1,77 @@
+package middleware
+
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"net/http"
+
+	"github.com/nprimo/quick/sessions"
+)
+
+const (
+	csrfHeader  = "X-CSRF-Token"
+	csrfFormKey = "csrf_token"
+)
+
+// CSRF is a middleware that provides Cross-Site Request Forgery protection.
+func CSRF(store sessions.Store) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Get session ID from cookie
+			cookie, err := r.Cookie("session_id")
+			var sessionID string
+			if err == nil {
+				sessionID = cookie.Value
+			}
+
+			// Get session from store
+			session, err := store.Get(r.Context(), sessionID)
+			if err != nil {
+				// If session not found or error, create a dummy session for token generation
+				session = sessions.Session{}
+			}
+
+			// Check if token exists in session
+			token := session.CSRFToken
+			if token == "" {
+				// Generate new token if not present
+				token, err = generateCSRFToken()
+				if err != nil {
+					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+					return
+				}
+				// Update session with new token
+				session.CSRFToken = token
+				// Save the session (even if it's a new one)
+				if sessionID != "" {
+					_ = store.Save(r.Context(), session)
+				}
+			}
+
+			// Validate token for POST requests
+			if r.Method == http.MethodPost {
+				submittedToken := r.Header.Get(csrfHeader)
+				if submittedToken == "" {
+					submittedToken = r.FormValue(csrfFormKey)
+				}
+
+				if submittedToken != token {
+					http.Error(w, "CSRF token mismatch", http.StatusForbidden)
+					return
+				}
+			}
+
+			// Add token to context for templates
+			ctx := sessions.WithCSRFToken(r.Context(), token)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func generateCSRFToken() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
+}
