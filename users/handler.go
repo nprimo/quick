@@ -132,4 +132,3 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) error {
 	http.Redirect(w, r, "/login", http.StatusFound)
 	return nil
 }
-
