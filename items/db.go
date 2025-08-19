@@ -19,7 +19,7 @@ func (s *DBStore) Add(ctx context.Context, item Item) error {
 }
 
 func (s *DBStore) All(ctx context.Context) ([]Item, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT id, name, quantity FROM items")
+	rows, err := s.db.QueryContext(ctx, "SELECT id, name, quantity, created_at, updated_at FROM items")
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (s *DBStore) All(ctx context.Context) ([]Item, error) {
 	var items []Item
 	for rows.Next() {
 		var item Item
-		if err := rows.Scan(&item.ID, &item.Name, &item.Quantity); err != nil {
+		if err := rows.Scan(&item.ID, &item.Name, &item.Quantity, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -39,7 +39,7 @@ func (s *DBStore) All(ctx context.Context) ([]Item, error) {
 
 func (s *DBStore) Get(ctx context.Context, id int) (Item, error) {
 	var item Item
-	err := s.db.QueryRowContext(ctx, "SELECT id, name, quantity FROM items WHERE id = ?", id).Scan(&item.ID, &item.Name, &item.Quantity)
+	err := s.db.QueryRowContext(ctx, "SELECT id, name, quantity, created_at, updated_at FROM items WHERE id = ?", id).Scan(&item.ID, &item.Name, &item.Quantity, &item.CreatedAt, &item.UpdatedAt)
 	return item, err
 }
 

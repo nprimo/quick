@@ -1,11 +1,16 @@
 package items
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type Item struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	Quantity int    `json:"quantity"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	Quantity  int       `json:"quantity"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Store interface {

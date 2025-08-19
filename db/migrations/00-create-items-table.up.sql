@@ -1,5 +1,15 @@
 CREATE TABLE IF NOT EXISTS items (
     id INTEGER PRIMARY KEY,
     name TEXT,
-    quantity INTEGER
+    quantity INTEGER,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TRIGGER IF NOT EXISTS trigger_items_updated_at
+    AFTER UPDATE ON items
+    FOR EACH ROW
+BEGIN
+    UPDATE items SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+END;
+
