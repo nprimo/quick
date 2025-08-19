@@ -5,45 +5,104 @@ import "github.com/nprimo/quick/ui"
 
 templ ViewItems(items []Item) {
 	@ui.Layout("Items") {
-		<div>
-			<ul>
-				for _, item := range items {
-					<li>
-						{ item.Name } - { item.Quantity }
-						<button>
-							<a href={ templ.SafeURL(fmt.Sprintf("items/%d/update", item.ID)) }>Update</a>
-						</button>
-						<button>
-							<a href={ templ.SafeURL(fmt.Sprintf("items/%d/delete", item.ID)) }>Delete</a>
-						</button>
-					</li>
-				}
-			</ul>
-			<button>
-				<a href="/items/new">Add item</a>
-			</button>
+		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl mx-auto">
+			<div class="flex justify-between items-center mb-6">
+				<h1 class="text-3xl font-bold text-gray-800">Inventory Items</h1>
+				<a href="/items/new" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out">
+					Add New Item
+				</a>
+			</div>
+			<!-- Table container with a border and overflow handling for responsiveness -->
+			<div class="overflow-x-auto border rounded-lg">
+				<table class="min-w-full bg-white">
+					<thead class="bg-gray-50">
+						<tr>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Item Name
+							</th>
+							<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Quantity
+							</th>
+							<th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Actions
+							</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-200">
+						// Loop through the items passed into the component.
+						for _, item := range items {
+							<tr class="hover:bg-gray-50 transition">
+								<td class="px-6 py-4 whitespace-nowrap">
+									<span class="font-medium text-gray-900">{ item.Name }</span>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap">
+									<span class="text-gray-700">{ fmt.Sprintf("%d", item.Quantity) }</span>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+									// Update button styled in a subtle gray.
+									<a href={ templ.SafeURL(fmt.Sprintf("/items/%d/update", item.ID)) } class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm transition">
+										Update
+									</a>
+									// Delete button styled in a cautionary red.
+									<a href={ templ.SafeURL(fmt.Sprintf("/items/%d/delete", item.ID)) } class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
+										Delete
+									</a>
+								</td>
+							</tr>
+						}
+						// A message to show if there are no items.
+						if len(items) == 0 {
+							<tr>
+								<td colspan="3" class="px-6 py-4 text-center text-gray-500">
+									No items found. Click "Add New Item" to get started!
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	}
 }
 
 templ ViewItem(item Item) {
 	@ui.Layout(item.Name) {
-		<div>
-			{ item.Name }
-			{ item.Quantity }
+		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
+			<h1 class="text-3xl font-bold text-gray-800 mb-6">{ item.Name }</h1>
+			<div class="space-y-4">
+				<div>
+					<p class="text-lg font-semibold text-gray-700">Quantity</p>
+					<p class="text-gray-900">{ fmt.Sprintf("%d", item.Quantity) }</p>
+				</div>
+			</div>
+			<div class="mt-6">
+				<a href="/items" class="text-blue-600 hover:text-blue-800 transition">
+					&larr; Back to Items
+				</a>
+			</div>
 		</div>
 	}
 }
 
 templ AddItem(item Item) {
 	@ui.Layout("Add item") {
-		<div>
-			<form action="/items/new" method="post">
-				<label for="name">Item name:</label>
-				<input type="text" name="name" id="name" required/>
-				<label for="quantity">Item quantity:</label>
-				<input type="number" name="quantity" id="quantity" required/>
-				<input type="submit" value="Add"/>
+		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
+			<h1 class="text-3xl font-bold text-gray-800 mb-6">Add New Item</h1>
+			<form action="/items/new" method="post" class="space-y-6">
+				<div>
+					<label for="name" class="block text-sm font-medium text-gray-700">Item name:</label>
+					<input type="text" name="name" id="name" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
+				</div>
+				<div>
+					<label for="quantity" class="block text-sm font-medium text-gray-700">Item quantity:</label>
+					<input type="number" name="quantity" id="quantity" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
+				</div>
+				<div class="flex items-center justify-between">
+					<input type="submit" value="Add Item" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
+					<a href="/items" class="text-gray-600 hover:text-gray-800 transition">
+						Cancel
+					</a>
+				</div>
 			</form>
 		</div>
 	}
@@ -51,13 +110,23 @@ templ AddItem(item Item) {
 
 templ UpdateItem(item Item) {
 	@ui.Layout("Update item") {
-		<div>
-			<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post">
-				<label for="name">Item name:</label>
-				<input type="text" name="name" id="name" value={ item.Name } required/>
-				<label for="quantity">Item quantity:</label>
-				<input type="number" name="quantity" id="quantity" value={ item.Quantity } required/>
-				<input type="submit" value="Update"/>
+		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
+			<h1 class="text-3xl font-bold text-gray-800 mb-6">Update Item</h1>
+			<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post" class="space-y-6">
+				<div>
+					<label for="name" class="block text-sm font-medium text-gray-700">Item name:</label>
+					<input type="text" name="name" id="name" value={ item.Name } required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
+				</div>
+				<div>
+					<label for="quantity" class="block text-sm font-medium text-gray-700">Item quantity:</label>
+					<input type="number" name="quantity" id="quantity" value={ fmt.Sprintf("%d", item.Quantity) } required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
+				</div>
+				<div class="flex items-center justify-between">
+					<input type="submit" value="Update Item" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
+					<a href="/items" class="text-gray-600 hover:text-gray-800 transition">
+						Cancel
+					</a>
+				</div>
 			</form>
 		</div>
 	}
