@@ -30,38 +30,20 @@ func NewError(code int, err error, message string) Error {
 // This allows us to centralize error handling.
 type HandlerFuncWithErr func(w http.ResponseWriter, r *http.Request) error
 
-// ErrorMux is a custom ServeMux that wraps handlers to manage errors.
-// It embeds http.ServerMux to inherit its functionality.
-type ErrorMux struct {
-	*http.ServeMux
-	log *slog.Logger
-}
-
-// NewErrorMux creates and returns a new ErrorMux.
-func NewErrorMux(log *slog.Logger) *ErrorMux {
-	return &ErrorMux{
-		ServeMux: http.NewServeMux(),
-		log:      log,
-	}
-}
-
-// HandleErrorFunc registers a custom ErrorHandler for the given pattern.
-// It wraps the ErrorHandler in a standard http.HandlerFunc to check for errors.
-func (mux *ErrorMux) HandleErrorFunc(pattern string, handler HandlerFuncWithErr) {
-	mux.Handle(pattern, mux.Handler(handler))
-}
-
-func (mux *ErrorMux) Handler(handler HandlerFuncWithErr) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := handler(w, r)
-		if err != nil {
-			err, ok := err.(Error)
-			if !ok {
-				mux.log.Error("unknown error",
-					"err", err)
+// ErrorHandler is a middleware that handles errors from HandlerFuncWithErr.
+func ErrorHandler(log *slog.Logger) func(HandlerFuncWithErr) http.Handler {
+	return func(handler HandlerFuncWithErr) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := handler(w, r)
+			if err != nil {
+				err, ok := err.(Error)
+				if !ok {
+					log.Error("unknown error",
+						"err", err)
+				}
+				log.Error("ERROR:",
+					"err", err.InternalError)
 			}
-			mux.log.Error("ERROR:",
-				"err", err.InternalError)
-		}
-	})
+		})
+	}
 }
