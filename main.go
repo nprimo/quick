@@ -10,6 +10,7 @@ import (
 
 	"github.com/nprimo/quick/db"
 	"github.com/nprimo/quick/items"
+	"github.com/nprimo/quick/users"
 )
 
 func main() {
@@ -31,12 +32,15 @@ func main() {
 	itemsStore := items.NewDBStore(dbConn)
 	itemsHandler := items.NewHandler(itemsStore, log)
 
+	usersStore := users.NewDBStore(dbConn)
+	usersHandler := users.NewHandler(usersStore, log)
+
 	server := http.Server{
 		// TODO: make this come from config
 		Addr:         ":4321",
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      Router(itemsHandler, log),
+		Handler:      Router(itemsHandler, usersHandler, log),
 	}
 
 	if err := server.ListenAndServe(); err != nil {

@@ -7,11 +7,13 @@ import (
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/middleware"
 	"github.com/nprimo/quick/ui"
+	"github.com/nprimo/quick/users"
 	"github.com/nprimo/quick/web"
 )
 
 func Router(
 	itemHandler items.Handler,
+	userHandler users.Handler,
 	log *slog.Logger,
 ) http.Handler {
 	mux := web.NewErrorMux(log)
@@ -33,6 +35,11 @@ func Router(
 
 	mux.HandleErrorFunc("GET /items/new", itemHandler.AddItem)
 	mux.HandleErrorFunc("POST /items/new", itemHandler.AddItemPost)
+
+	mux.HandleErrorFunc("GET /register", userHandler.Register)
+	mux.HandleErrorFunc("POST /register", userHandler.RegisterPost)
+	mux.HandleErrorFunc("GET /login", userHandler.Login)
+	mux.HandleErrorFunc("POST /login", userHandler.LoginPost)
 
 	wrapped := middleware.Logger(mux, log)
 	return wrapped

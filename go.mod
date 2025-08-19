@@ -3,6 +3,7 @@ module github.com/nprimo/quick
 go 1.24.4
 
 require (
-	github.com/a-h/templ v0.3.906
+	github.com/a-h/templ v0.3.943
 	github.com/mattn/go-sqlite3 v1.14.28
+	golang.org/x/crypto v0.41.0
 )
