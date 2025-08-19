@@ -1,55 +1,64 @@
 package items
 
 import "fmt"
+import "github.com/nprimo/quick/ui"
 
 templ ViewItems(items []Item) {
-	<div>
-		<ul>
-			for _, item := range items {
-				<li>
-					{ item.Name } - { item.Quantity }
-					<button>
-						<a href={ templ.SafeURL(fmt.Sprintf("items/%d/update", item.ID)) }>Update</a>
-					</button>
-					<button>
-						<a href={ templ.SafeURL(fmt.Sprintf("items/%d/delete", item.ID)) }>Delete</a>
-					</button>
-				</li>
-			}
-		</ul>
-		<button>
-			<a href="/items/new">Add item</a>
-		</button>
-	</div>
+	@ui.Layout("Items") {
+		<div>
+			<ul>
+				for _, item := range items {
+					<li>
+						{ item.Name } - { item.Quantity }
+						<button>
+							<a href={ templ.SafeURL(fmt.Sprintf("items/%d/update", item.ID)) }>Update</a>
+						</button>
+						<button>
+							<a href={ templ.SafeURL(fmt.Sprintf("items/%d/delete", item.ID)) }>Delete</a>
+						</button>
+					</li>
+				}
+			</ul>
+			<button>
+				<a href="/items/new">Add item</a>
+			</button>
+		</div>
+	}
 }
 
 templ ViewItem(item Item) {
-	<div>
-		{ item.Name }
-		{ item.Quantity }
-	</div>
+	@ui.Layout(item.Name) {
+		<div>
+			{ item.Name }
+			{ item.Quantity }
+		</div>
+	}
 }
 
 templ AddItem(item Item) {
-	<div>
-		<form action="/items/new" method="post">
-			<label for="name">Item name:</label>
-			<input type="text" name="name" id="name" required/>
-			<label for="quantity">Item quantity:</label>
-			<input type="number" name="quantity" id="quantity" required/>
-			<input type="submit" value="Add"/>
-		</form>
-	</div>
+	@ui.Layout("Add item") {
+		<div>
+			<form action="/items/new" method="post">
+				<label for="name">Item name:</label>
+				<input type="text" name="name" id="name" required/>
+				<label for="quantity">Item quantity:</label>
+				<input type="number" name="quantity" id="quantity" required/>
+				<input type="submit" value="Add"/>
+			</form>
+		</div>
+	}
 }
 
 templ UpdateItem(item Item) {
-	<div>
-		<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post">
-			<label for="name">Item name:</label>
-			<input type="text" name="name" id="name" value={ item.Name } required/>
-			<label for="quantity">Item quantity:</label>
-			<input type="number" name="quantity" id="quantity" value={ item.Quantity } required/>
-			<input type="submit" value="Update"/>
-		</form>
-	</div>
+	@ui.Layout("Update item") {
+		<div>
+			<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post">
+				<label for="name">Item name:</label>
+				<input type="text" name="name" id="name" value={ item.Name } required/>
+				<label for="quantity">Item quantity:</label>
+				<input type="number" name="quantity" id="quantity" value={ item.Quantity } required/>
+				<input type="submit" value="Update"/>
+			</form>
+		</div>
+	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/middleware"
+	"github.com/nprimo/quick/ui"
 	"github.com/nprimo/quick/web"
 )
 
@@ -15,8 +16,11 @@ func Router(
 ) http.Handler {
 	mux := web.NewErrorMux(log)
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`ciao mamma`))
+	mux.HandleErrorFunc("/", func(w http.ResponseWriter, r *http.Request) error {
+		if err := ui.Index().Render(r.Context(), w); err != nil {
+			return web.NewError(http.StatusInternalServerError, err, "")
+		}
+		return nil
 	})
 
 	mux.HandleErrorFunc("GET /items", itemHandler.ListItems)
