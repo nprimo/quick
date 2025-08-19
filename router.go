@@ -16,20 +16,19 @@ func Router(
 	mux := web.NewErrorMux(log)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusTeapot)
 		w.Write([]byte(`ciao mamma`))
 	})
 
-	mux.HandleFunc("GET /items", itemHandler.ListItems)
-	mux.HandleFunc("GET /items/{id}", itemHandler.GetItem)
+	mux.HandleErrorFunc("GET /items", itemHandler.ListItems)
+	mux.HandleErrorFunc("GET /items/{id}", itemHandler.GetItem)
 
-	mux.HandleFunc("GET /items/{id}/update", itemHandler.UpdateItem)
-	mux.HandleFunc("POST /items/{id}", itemHandler.UpdateItemPost)
+	mux.HandleErrorFunc("GET /items/{id}/update", itemHandler.UpdateItem)
+	mux.HandleErrorFunc("POST /items/{id}", itemHandler.UpdateItemPost)
 
-	mux.HandleFunc("GET /items/{id}/delete", itemHandler.DeleteItem)
+	mux.HandleErrorFunc("GET /items/{id}/delete", itemHandler.DeleteItem)
 
-	mux.HandleFunc("GET /items/new", itemHandler.AddItem)
-	mux.HandleFunc("POST /items/new", itemHandler.AddItemPost)
+	mux.HandleErrorFunc("GET /items/new", itemHandler.AddItem)
+	mux.HandleErrorFunc("POST /items/new", itemHandler.AddItemPost)
 
 	wrapped := middleware.Logger(mux, log)
 	return wrapped

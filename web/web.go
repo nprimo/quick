@@ -15,6 +15,17 @@ func (e Error) Error() string {
 	return e.Message
 }
 
+func NewError(code int, err error, message string) Error {
+	if len(message) == 0 {
+		message = http.StatusText(code)
+	}
+	return Error{
+		Code:          code,
+		InternalError: err,
+		Message:       message,
+	}
+}
+
 // HandlerFuncWithErr is a custom handler function that returns an error.
 // This allows us to centralize error handling.
 type HandlerFuncWithErr func(w http.ResponseWriter, r *http.Request) error
@@ -44,13 +55,9 @@ func (mux *ErrorMux) HandleErrorFunc(pattern string, handler HandlerFuncWithErr)
 			if !ok {
 				mux.log.Error("unknown error",
 					"err", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
 			}
 			mux.log.Error("ERROR:",
-				"err", err)
-			http.Error(w, http.StatusText(err.Code), err.Code)
-			return
+				"err", err.InternalError)
 		}
 	}
 	mux.HandleFunc(pattern, wrappedHandler)

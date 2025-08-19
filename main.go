@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	log := slog.New(&slog.JSONHandler{})
+	log := slog.Default()
 
 	itemsStore := items.NewDBStore(dbConn)
 	itemsHandler := items.NewHandler(itemsStore, log)
