@@ -6,6 +6,7 @@ import (
 
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/middleware"
+	"github.com/nprimo/quick/sessions"
 	"github.com/nprimo/quick/ui"
 	"github.com/nprimo/quick/users"
 	"github.com/nprimo/quick/web"
@@ -14,6 +15,7 @@ import (
 func Router(
 	itemHandler items.Handler,
 	userHandler users.Handler,
+	sessionStore sessions.Store,
 	log *slog.Logger,
 ) http.Handler {
 	mux := web.NewErrorMux(log)
@@ -40,7 +42,10 @@ func Router(
 	mux.HandleErrorFunc("POST /register", userHandler.RegisterPost)
 	mux.HandleErrorFunc("GET /login", userHandler.Login)
 	mux.HandleErrorFunc("POST /login", userHandler.LoginPost)
+	mux.HandleErrorFunc("GET /logout", userHandler.Logout)
 
-	wrapped := middleware.Logger(mux, log)
-	return wrapped
+	loggedMux := middleware.Logger(mux, log)
+	sessionMux := middleware.Session(sessionStore)(loggedMux)
+
+	return sessionMux
 }

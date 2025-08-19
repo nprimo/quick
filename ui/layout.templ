@@ -1,5 +1,7 @@
 package ui
 
+import "github.com/nprimo/quick/sessions"
+
 templ Layout(title string) {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -15,9 +17,13 @@ templ Layout(title string) {
 					<a href="/" class="text-xl font-bold text-blue-600 hover:text-blue-800">MyApp</a>
 					<div>
 						<a href="/" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Home</a>
-						<a href="/items" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Items</a>
-						<a href="/login" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Login</a>
-						<a href="/register" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Register</a>
+						if sessions.GetUserID(ctx) != 0 {
+							<a href="/items" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Items</a>
+							<a href="/logout" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Logout</a>
+						} else {
+							<a href="/login" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Login</a>
+							<a href="/register" class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition">Register</a>
+						}
 					</div>
 				</nav>
 			</header>

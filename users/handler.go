@@ -5,18 +5,22 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
+	"github.com/nprimo/quick/sessions"
 	"github.com/nprimo/quick/web"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Handler struct {
-	store Store
-	log   *slog.Logger
+	store    Store
+	sessions sessions.Store
+	log      *slog.Logger
 }
 
-func NewHandler(store Store, log *slog.Logger) Handler {
-	return Handler{store: store, log: log}
+func NewHandler(store Store, sessions sessions.Store, log *slog.Logger) Handler {
+	return Handler{store: store, sessions: sessions, log: log}
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) error {
@@ -57,7 +61,7 @@ func (h *Handler) RegisterPost(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) error {
-	if err := Login().Render(r.Context(), w); err != nil {
+	if err := Login("").Render(r.Context(), w); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "failed to render login page")
 	}
 	return nil
@@ -72,22 +76,60 @@ func (h *Handler) LoginPost(w http.ResponseWriter, r *http.Request) error {
 	password := r.FormValue("password")
 
 	if email == "" || password == "" {
-		return web.NewError(http.StatusBadRequest, errors.New("email and password are required"), "email and password are required")
+		return Login("email and password are required").Render(r.Context(), w)
 	}
 
 	user, err := h.store.GetByEmail(r.Context(), email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return web.NewError(http.StatusBadRequest, err, "invalid credentials")
+			return Login("wrong email or password").Render(r.Context(), w)
 		}
 		return web.NewError(http.StatusInternalServerError, err, "failed to get user")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password)); err != nil {
-		return web.NewError(http.StatusBadRequest, err, "invalid credentials")
+		return Login("wrong email or password").Render(r.Context(), w)
 	}
 
-	// TODO: Implement session management
+	session := sessions.Session{
+		ID:        uuid.NewString(),
+		UserID:    user.ID,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+	}
+
+	if err := h.sessions.Add(r.Context(), session); err != nil {
+		return web.NewError(http.StatusInternalServerError, err, "failed to create session")
+	}
+
+	cookie := http.Cookie{
+		Name:     "session_id",
+		Value:    session.ID,
+		Expires:  session.ExpiresAt,
+		HttpOnly: true,
+		Path:     "/",
+	}
+
+	http.SetCookie(w, &cookie)
+
 	http.Redirect(w, r, "/items", http.StatusFound)
 	return nil
 }
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
+
+	if err := h.sessions.Delete(r.Context(), cookie.Value); err != nil {
+		return web.NewError(http.StatusInternalServerError, err, "failed to delete session")
+	}
+
+	cookie.Expires = time.Now().Add(-1 * time.Hour)
+	http.SetCookie(w, cookie)
+
+	http.Redirect(w, r, "/login", http.StatusFound)
+	return nil
+}
+

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/nprimo/quick/sessions"
 	"github.com/nprimo/quick/web"
 )
 
@@ -20,7 +21,12 @@ func NewHandler(store Store, log *slog.Logger) Handler {
 }
 
 func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) error {
-	items, err := h.store.All(r.Context())
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
+	items, err := h.store.All(r.Context(), userID)
 	if err != nil {
 		return web.NewError(http.StatusBadRequest, err, "")
 	}
@@ -31,12 +37,17 @@ func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) GetItem(w http.ResponseWriter, r *http.Request) error {
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return web.NewError(http.StatusBadRequest, err, "")
 	}
-	item, err := h.store.Get(r.Context(), id)
+	item, err := h.store.Get(r.Context(), id, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return web.NewError(http.StatusNotFound, err, "")
@@ -50,6 +61,11 @@ func (h *Handler) GetItem(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) error {
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
 	item := Item{}
 	if err := AddItem(item).Render(r.Context(), w); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
@@ -58,11 +74,16 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) AddItemPost(w http.ResponseWriter, r *http.Request) error {
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
 	item, err := getItemFromForm(r)
 	if err != nil {
 		return web.NewError(http.StatusBadRequest, err, "")
 	}
-	if err := h.store.Add(r.Context(), item); err != nil {
+	if err := h.store.Add(r.Context(), item, userID); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
 	http.Redirect(w, r, "/items", http.StatusFound)
@@ -70,12 +91,17 @@ func (h *Handler) AddItemPost(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) error {
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
-	item, err := h.store.Get(r.Context(), id)
+	item, err := h.store.Get(r.Context(), id, userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return web.NewError(http.StatusNotFound, err, "")
@@ -89,6 +115,11 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) UpdateItemPost(w http.ResponseWriter, r *http.Request) error {
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
 	item, err := getItemFromForm(r)
 	if err != nil {
 		return web.NewError(http.StatusBadRequest, err, "")
@@ -98,7 +129,7 @@ func (h *Handler) UpdateItemPost(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return web.NewError(http.StatusBadRequest, err, "")
 	}
-	if err := h.store.Update(r.Context(), id, item); err != nil {
+	if err := h.store.Update(r.Context(), id, item, userID); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
 	http.Redirect(w, r, "/items", http.StatusFound)
@@ -106,12 +137,17 @@ func (h *Handler) UpdateItemPost(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) error {
+	userID := sessions.GetUserID(r.Context())
+	if userID == 0 {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return nil
+	}
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
-	if err := h.store.Delete(r.Context(), id); err != nil {
+	if err := h.store.Delete(r.Context(), id, userID); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
 	http.Redirect(w, r, "/items", http.StatusFound)

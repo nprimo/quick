@@ -8,6 +8,21 @@ package ui
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+import "context"
+
+const userIDKey = "userID"
+
+func WithUserID(ctx context.Context, userID int) context.Context {
+	return context.WithValue(ctx, userIDKey, userID)
+}
+
+func GetUserID(ctx context.Context) int {
+	if userID, ok := ctx.Value(userIDKey).(int); ok {
+		return userID
+	}
+	return 0
+}
+
 func Layout(title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -36,13 +51,28 @@ func Layout(title string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/layout.templ`, Line: 9, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/layout.templ`, Line: 24, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><script src=\"https://cdn.tailwindcss.com\"></script></head><body class=\"bg-gray-100 text-gray-900 font-sans\"><header class=\"bg-white shadow-md\"><nav class=\"container mx-auto px-6 py-4 flex justify-between items-center\"><a href=\"/\" class=\"text-xl font-bold text-blue-600 hover:text-blue-800\">MyApp</a><div><a href=\"/\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Home</a> <a href=\"/items\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Items</a> <a href=\"/login\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Login</a> <a href=\"/register\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Register</a></div></nav></header><main class=\"container mx-auto px-6 py-8 flex-grow\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><script src=\"https://cdn.tailwindcss.com\"></script></head><body class=\"bg-gray-100 text-gray-900 font-sans\"><header class=\"bg-white shadow-md\"><nav class=\"container mx-auto px-6 py-4 flex justify-between items-center\"><a href=\"/\" class=\"text-xl font-bold text-blue-600 hover:text-blue-800\">MyApp</a><div><a href=\"/\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Home</a> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if GetUserID(ctx) != 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/items\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Items</a> <a href=\"/logout\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Logout</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<a href=\"/login\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Login</a> <a href=\"/register\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Register</a>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></nav></header><main class=\"container mx-auto px-6 py-8 flex-grow\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -50,7 +80,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><footer class=\"bg-white mt-8 py-4 border-t\"><div class=\"container mx-auto px-6 text-center text-gray-600\"><p>&copy; 2025 My Awesome Site. All rights reserved.</p></div></footer></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</main><footer class=\"bg-white mt-8 py-4 border-t\"><div class=\"container mx-auto px-6 text-center text-gray-600\"><p>&copy; 2025 My Awesome Site. All rights reserved.</p></div></footer></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -91,7 +121,7 @@ func Index() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div>Ciao mamma</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div>Ciao mamma</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
