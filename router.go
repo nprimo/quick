@@ -6,13 +6,14 @@ import (
 
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/middleware"
+	"github.com/nprimo/quick/web"
 )
 
 func Router(
 	itemHandler items.Handler,
 	log *slog.Logger,
 ) http.Handler {
-	mux := http.NewServeMux()
+	mux := web.NewErrorMux(log)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
