@@ -21,6 +21,7 @@ func main() {
 	if err := db.Init(dbConn); err != nil {
 		panic(err)
 	}
+	// TODO: make this only if flag enabled (for example)
 	if err := db.Seed(dbConn); err != nil {
 		panic(err)
 	}
@@ -31,6 +32,7 @@ func main() {
 	itemsHandler := items.NewHandler(itemsStore, log)
 
 	server := http.Server{
+		// TODO: make this come from config
 		Addr:         ":4321",
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
