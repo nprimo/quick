@@ -18,34 +18,34 @@ func Router(
 	sessionStore sessions.Store,
 	log *slog.Logger,
 ) http.Handler {
+
 	mux := web.NewErrorMux(log)
 
-	mux.HandleErrorFunc("/", func(w http.ResponseWriter, r *http.Request) error {
+	basicChain := middleware.New(middleware.Logger(log), middleware.Session(sessionStore))
+	protectedChain := basicChain.Append(middleware.RequireLogin)
+
+	// Public routes
+	mux.Handle("/", basicChain.Then(mux.Handler(func(w http.ResponseWriter, r *http.Request) error {
 		if err := ui.Index().Render(r.Context(), w); err != nil {
 			return web.NewError(http.StatusInternalServerError, err, "")
 		}
 		return nil
-	})
+	})))
+	mux.Handle("GET /items", basicChain.Then(mux.Handler(itemHandler.ListItems)))
+	mux.Handle("GET /items/{id}", basicChain.Then(mux.Handler(itemHandler.GetItem)))
+	mux.Handle("GET /register", basicChain.Then(mux.Handler(userHandler.Register)))
+	mux.Handle("POST /register", basicChain.Then(mux.Handler(userHandler.RegisterPost)))
+	mux.Handle("GET /login", basicChain.Then(mux.Handler(userHandler.Login)))
+	mux.Handle("POST /login", basicChain.Then(mux.Handler(userHandler.LoginPost)))
 
-	mux.HandleErrorFunc("GET /items", itemHandler.ListItems)
-	mux.HandleErrorFunc("GET /items/{id}", itemHandler.GetItem)
+	// Protected routes
+	mux.Handle("GET /items/new", protectedChain.Then(mux.Handler(itemHandler.AddItem)))
+	mux.Handle("POST /items/new", protectedChain.Then(mux.Handler(itemHandler.AddItemPost)))
+	mux.Handle("GET /items/{id}/update", protectedChain.Then(mux.Handler(itemHandler.UpdateItem)))
+	mux.Handle("POST /items/{id}", protectedChain.Then(mux.Handler(itemHandler.UpdateItemPost)))
+	mux.Handle("GET /items/{id}/delete", protectedChain.Then(mux.Handler(itemHandler.DeleteItem)))
+	mux.Handle("GET /logout", protectedChain.Then(mux.Handler(userHandler.Logout)))
 
-	mux.HandleErrorFunc("GET /items/{id}/update", itemHandler.UpdateItem)
-	mux.HandleErrorFunc("POST /items/{id}", itemHandler.UpdateItemPost)
-
-	mux.HandleErrorFunc("GET /items/{id}/delete", itemHandler.DeleteItem)
-
-	mux.HandleErrorFunc("GET /items/new", itemHandler.AddItem)
-	mux.HandleErrorFunc("POST /items/new", itemHandler.AddItemPost)
-
-	mux.HandleErrorFunc("GET /register", userHandler.Register)
-	mux.HandleErrorFunc("POST /register", userHandler.RegisterPost)
-	mux.HandleErrorFunc("GET /login", userHandler.Login)
-	mux.HandleErrorFunc("POST /login", userHandler.LoginPost)
-	mux.HandleErrorFunc("GET /logout", userHandler.Logout)
-
-	loggedMux := middleware.Logger(mux, log)
-	sessionMux := middleware.Session(sessionStore)(loggedMux)
-
-	return sessionMux
+	return mux
 }
+

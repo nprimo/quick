@@ -48,7 +48,11 @@ func NewErrorMux(log *slog.Logger) *ErrorMux {
 // HandleErrorFunc registers a custom ErrorHandler for the given pattern.
 // It wraps the ErrorHandler in a standard http.HandlerFunc to check for errors.
 func (mux *ErrorMux) HandleErrorFunc(pattern string, handler HandlerFuncWithErr) {
-	wrappedHandler := func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle(pattern, mux.Handler(handler))
+}
+
+func (mux *ErrorMux) Handler(handler HandlerFuncWithErr) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := handler(w, r)
 		if err != nil {
 			err, ok := err.(Error)
@@ -59,6 +63,5 @@ func (mux *ErrorMux) HandleErrorFunc(pattern string, handler HandlerFuncWithErr)
 			mux.log.Error("ERROR:",
 				"err", err.InternalError)
 		}
-	}
-	mux.HandleFunc(pattern, wrappedHandler)
+	})
 }
