@@ -43,14 +43,14 @@ func Router(
 
 	// Public routes
 	mux.Handle("/", basicChain.Then(errorHandler(indexHandler)))
-	mux.Handle("GET /items", basicChain.Then(errorHandler(itemHandler.ListItems)))
-	mux.Handle("GET /items/{id}", basicChain.Then(errorHandler(itemHandler.GetItem)))
 	mux.Handle("GET /register", basicChain.Then(errorHandler(userHandler.Register)))
 	mux.Handle("POST /register", basicChain.Then(errorHandler(userHandler.RegisterPost)))
 	mux.Handle("GET /login", basicChain.Then(errorHandler(userHandler.Login)))
 	mux.Handle("POST /login", basicChain.Then(errorHandler(userHandler.LoginPost)))
 
 	// Protected routes
+	mux.Handle("GET /items", protectedChain.Then(errorHandler(itemHandler.ListItems)))
+	mux.Handle("GET /items/{id}", protectedChain.Then(errorHandler(itemHandler.GetItem)))
 	mux.Handle("GET /items/new", protectedChain.Then(errorHandler(itemHandler.AddItem)))
 	mux.Handle("POST /items/new", protectedChain.Then(errorHandler(itemHandler.AddItemPost)))
 	mux.Handle("GET /items/{id}/update", protectedChain.Then(errorHandler(itemHandler.UpdateItem)))

@@ -1,0 +1,58 @@
+package ui
+
+// --- Buttons ---
+
+// Button is a primary button styled as a link.
+templ Button(text string, href templ.SafeURL) {
+	<a href={ href } class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out">
+		{ text }
+	</a>
+}
+
+// ButtonSecondary is a secondary button styled as a link.
+templ ButtonSecondary(text string, href templ.SafeURL) {
+	<a href={ href } class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm transition">
+		{ text }
+	</a>
+}
+
+// Submit is a primary submit button for forms.
+templ Submit(text string) {
+	<input type="submit" value={ text } class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
+}
+
+// SubmitFull is a full-width submit button.
+templ SubmitFull(text string) {
+	<input type="submit" value={ text } class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
+}
+
+// SubmitDanger is a submit button with danger styling, for delete actions.
+templ SubmitDanger(text string) {
+	<input type="submit" value={ text } class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition cursor-pointer"/>
+}
+
+// --- Forms & Inputs ---
+
+// Input provides a standard labeled text input.
+templ Input(name, label, inputType, value string, required bool) {
+	<div>
+		<label for={ name } class="block text-sm font-medium text-gray-700">{ label }:</label>
+		<input type={ inputType } name={ name } id={ name } value={ value } required?={ required } class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
+	</div>
+}
+
+// FormContainer is a card-like container for forms.
+templ FormContainer(title string) {
+	<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
+		<h1 class="text-3xl font-bold text-gray-800 mb-6">{ title }</h1>
+		{ children... }
+	</div>
+}
+
+// AuthFormContainer is a card-like container for authentication forms.
+templ AuthFormContainer(title string) {
+	<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md mx-auto">
+		<h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">{ title }</h1>
+		{ children... }
+	</div>
+}

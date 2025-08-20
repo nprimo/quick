@@ -10,9 +10,7 @@ templ ViewItems(items []Item, csrfToken string) {
 		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-6xl mx-auto">
 			<div class="flex justify-between items-center mb-6">
 				<h1 class="text-3xl font-bold text-gray-800">Inventory Items</h1>
-				<a href="/items/new" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out">
-					Add New Item
-				</a>
+				@ui.Button("Add New Item", templ.SafeURL("/items/new"))
 			</div>
 			<!-- Table container with a border and overflow handling for responsiveness -->
 			<div class="overflow-x-auto border rounded-lg">
@@ -53,14 +51,11 @@ templ ViewItems(items []Item, csrfToken string) {
 									<span class="text-gray-700">{ item.UpdatedAt.Format("2006-01-02 15:04:05") }</span>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
-									// Update button styled in a subtle gray.
-									<a href={ templ.SafeURL(fmt.Sprintf("/items/%d/update", item.ID)) } class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm transition">
-										Update
-									</a>
+									@ui.ButtonSecondary("Update", templ.SafeURL(fmt.Sprintf("/items/%d/update", item.ID)))
 									// Delete button styled in a cautionary red.
 									<form action={ templ.SafeURL(fmt.Sprintf("/items/%d/delete", item.ID)) } method="POST" class="inline-block">
 										<input type="hidden" name="csrf_token" value={ csrfToken }/>
-										<input type="submit" value="Delete" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition cursor-pointer"/>
+										@ui.SubmitDanger("Delete")
 									</form>
 								</td>
 							</tr>
@@ -109,50 +104,36 @@ templ ViewItem(item Item) {
 
 templ AddItem(item Item, csrfToken string) {
 	@ui.Layout("Add item") {
-		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
-			<h1 class="text-3xl font-bold text-gray-800 mb-6">Add New Item</h1>
+		@ui.FormContainer("Add New Item") {
 			<form action="/items/new" method="post" class="space-y-6">
 				<input type="hidden" name="csrf_token" value={ csrfToken }/>
-				<div>
-					<label for="name" class="block text-sm font-medium text-gray-700">Item name:</label>
-					<input type="text" name="name" id="name" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
-				<div>
-					<label for="quantity" class="block text-sm font-medium text-gray-700">Item quantity:</label>
-					<input type="number" name="quantity" id="quantity" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
+				@ui.Input("name", "Item name", "text", "", true)
+				@ui.Input("quantity", "Item quantity", "number", "", true)
 				<div class="flex items-center justify-between">
-					<input type="submit" value="Add Item" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
+					@ui.Submit("Add Item")
 					<a href="/items" class="text-gray-600 hover:text-gray-800 transition">
 						Cancel
 					</a>
 				</div>
 			</form>
-		</div>
+		}
 	}
 }
 
 templ UpdateItem(item Item, csrfToken string) {
 	@ui.Layout("Update item") {
-		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
-			<h1 class="text-3xl font-bold text-gray-800 mb-6">Update Item</h1>
+		@ui.FormContainer("Update Item") {
 			<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post" class="space-y-6">
 				<input type="hidden" name="csrf_token" value={ csrfToken }/>
-				<div>
-					<label for="name" class="block text-sm font-medium text-gray-700">Item name:</label>
-					<input type="text" name="name" id="name" value={ item.Name } required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
-				<div>
-					<label for="quantity" class="block text-sm font-medium text-gray-700">Item quantity:</label>
-					<input type="number" name="quantity" id="quantity" value={ fmt.Sprintf("%d", item.Quantity) } required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
+				@ui.Input("name", "Item name", "text", item.Name, true)
+				@ui.Input("quantity", "Item quantity", "number", fmt.Sprintf("%d", item.Quantity), true)
 				<div class="flex items-center justify-between">
-					<input type="submit" value="Update Item" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
+					@ui.Submit("Update Item")
 					<a href="/items" class="text-gray-600 hover:text-gray-800 transition">
 						Cancel
 					</a>
 				</div>
 			</form>
-		</div>
+		}
 	}
 }

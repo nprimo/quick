@@ -4,29 +4,19 @@ import "github.com/nprimo/quick/ui"
 
 templ Register() {
 	@ui.Layout("Register") {
-		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md mx-auto">
-			<h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Register</h1>
+		@ui.AuthFormContainer("Register") {
 			<form action="/register" method="post" class="space-y-6">
-				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
-					<input type="email" name="email" id="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
-				<div>
-					<label for="password" class="block text-sm font-medium text-gray-700">Password:</label>
-					<input type="password" name="password" id="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
-				<div>
-					<input type="submit" value="Register" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
-				</div>
+				@ui.Input("email", "Email", "email", "", true)
+				@ui.Input("password", "Password", "password", "", true)
+				@ui.SubmitFull("Register")
 			</form>
-		</div>
+		}
 	}
 }
 
 templ Login(err string) {
 	@ui.Layout("Login") {
-		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md mx-auto">
-			<h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Login</h1>
+		@ui.AuthFormContainer("Login") {
 			if err != "" {
 				<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
 					<strong class="font-bold">Error: </strong>
@@ -34,18 +24,10 @@ templ Login(err string) {
 				</div>
 			}
 			<form action="/login" method="post" class="space-y-6">
-				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
-					<input type="email" name="email" id="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
-				<div>
-					<label for="password" class="block text-sm font-medium text-gray-700">Password:</label>
-					<input type="password" name="password" id="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-				</div>
-				<div>
-					<input type="submit" value="Login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out cursor-pointer"/>
-				</div>
+				@ui.Input("email", "Email", "email", "", true)
+				@ui.Input("password", "Password", "password", "", true)
+				@ui.SubmitFull("Login")
 			</form>
-		</div>
+		}
 	}
 }
