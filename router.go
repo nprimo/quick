@@ -22,6 +22,13 @@ func Router(
 
 	mux := http.NewServeMux()
 
+	must := func(h http.Handler, err error) http.Handler {
+		if err != nil {
+			panic(err)
+		}
+		return h
+	}
+
 	// Sensible defaults for CORS. Customize origins for your specific needs.
 	allowedOrigins := []string{
 		fmt.Sprintf("http://localhost:%s", LISTENING_PORT),
@@ -32,7 +39,8 @@ func Router(
 
 	errorHandler := web.ErrorHandler(log)
 	basicChain := middleware.New(
-		middleware.CORS(allowedOrigins, allowedMethods, allowedHeaders), // CORS first
+		middleware.Recover(log), // Recover from panics first
+		middleware.CORS(allowedOrigins, allowedMethods, allowedHeaders), // Then CORS
 		middleware.Logger(log),
 		middleware.Session(sessionStore),
 	)
@@ -42,21 +50,24 @@ func Router(
 	)
 
 	// Public routes
-	mux.Handle("/", basicChain.Then(errorHandler(indexHandler)))
-	mux.Handle("GET /register", basicChain.Then(errorHandler(userHandler.Register)))
-	mux.Handle("POST /register", basicChain.Then(errorHandler(userHandler.RegisterPost)))
-	mux.Handle("GET /login", basicChain.Then(errorHandler(userHandler.Login)))
-	mux.Handle("POST /login", basicChain.Then(errorHandler(userHandler.LoginPost)))
+	mux.Handle("/", must(basicChain.Then(errorHandler(indexHandler))))
+	mux.Handle("GET /register", must(basicChain.Then(errorHandler(userHandler.Register))))
+	mux.Handle("POST /register", must(basicChain.Then(errorHandler(userHandler.RegisterPost))))
+	mux.Handle("GET /login", must(basicChain.Then(errorHandler(userHandler.Login))))
+	mux.Handle("POST /login", must(basicChain.Then(errorHandler(userHandler.LoginPost))))
+	mux.Handle("GET /panic", must(basicChain.Then(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) { panic("testing recover") }),
+	)))
 
 	// Protected routes
-	mux.Handle("GET /items", protectedChain.Then(errorHandler(itemHandler.ListItems)))
-	mux.Handle("GET /items/{id}", protectedChain.Then(errorHandler(itemHandler.GetItem)))
-	mux.Handle("GET /items/new", protectedChain.Then(errorHandler(itemHandler.AddItem)))
-	mux.Handle("POST /items/new", protectedChain.Then(errorHandler(itemHandler.AddItemPost)))
-	mux.Handle("GET /items/{id}/update", protectedChain.Then(errorHandler(itemHandler.UpdateItem)))
-	mux.Handle("POST /items/{id}", protectedChain.Then(errorHandler(itemHandler.UpdateItemPost)))
-	mux.Handle("POST /items/{id}/delete", protectedChain.Then(errorHandler(itemHandler.DeleteItem)))
-	mux.Handle("GET /logout", protectedChain.Then(errorHandler(userHandler.Logout)))
+	mux.Handle("GET /items", must(protectedChain.Then(errorHandler(itemHandler.ListItems))))
+	mux.Handle("GET /items/{id}", must(protectedChain.Then(errorHandler(itemHandler.GetItem))))
+	mux.Handle("GET /items/new", must(protectedChain.Then(errorHandler(itemHandler.AddItem))))
+	mux.Handle("POST /items/new", must(protectedChain.Then(errorHandler(itemHandler.AddItemPost))))
+	mux.Handle("GET /items/{id}/update", must(protectedChain.Then(errorHandler(itemHandler.UpdateItem))))
+	mux.Handle("POST /items/{id}", must(protectedChain.Then(errorHandler(itemHandler.UpdateItemPost))))
+	mux.Handle("POST /items/{id}/delete", must(protectedChain.Then(errorHandler(itemHandler.DeleteItem))))
+	mux.Handle("GET /logout", must(protectedChain.Then(errorHandler(userHandler.Logout))))
 
 	return mux
 }

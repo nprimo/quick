@@ -6,5 +6,12 @@ Use MVC project structure.
 
 # TODO
 
-- [ ] add CSRF token to the form
 - [ ] add a "error" page to render the message inside a "error layout"
+- [ ] go back to "errorMux" and make all middleware as below and treat all the error in the "error mux"?
+- [ ] ...
+- [ ] create CLI to have generator to add handler, db etc
+
+```go
+type HandleFuncWithError func(w http.ResponseWriter, r *http.Request) error
+type Middleware func(next HandlerFuncWithError) HandleFuncWithError
+```

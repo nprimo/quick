@@ -7,9 +7,9 @@ import (
 	"github.com/nprimo/quick/sessions"
 )
 
-func Session(store sessions.Store) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func Session(store sessions.Store) Middleware {
+	return func(next http.Handler) (http.Handler, error) {
+		fn := func(w http.ResponseWriter, r *http.Request) {
 			cookie, err := r.Cookie("session_id")
 			if err != nil {
 				next.ServeHTTP(w, r)
@@ -30,6 +30,7 @@ func Session(store sessions.Store) func(http.Handler) http.Handler {
 
 			ctx := sessions.WithUserID(r.Context(), session.UserID)
 			next.ServeHTTP(w, r.WithContext(ctx))
-		})
+		}
+		return http.HandlerFunc(fn), nil
 	}
 }

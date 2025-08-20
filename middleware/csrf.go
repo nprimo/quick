@@ -15,9 +15,9 @@ const (
 )
 
 // CSRF is a middleware that provides Cross-Site Request Forgery protection.
-func CSRF(store sessions.Store) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func CSRF(store sessions.Store) Middleware {
+	return func(next http.Handler) (http.Handler, error) {
+		fn := func(w http.ResponseWriter, r *http.Request) {
 			// Get session ID from cookie
 			cookie, err := r.Cookie("session_id")
 			var sessionID string
@@ -72,7 +72,8 @@ func CSRF(store sessions.Store) func(http.Handler) http.Handler {
 			// Add token to context for templates
 			ctx := sessions.WithCSRFToken(r.Context(), token)
 			next.ServeHTTP(w, r.WithContext(ctx))
-		})
+		}
+		return http.HandlerFunc(fn), nil
 	}
 }
 

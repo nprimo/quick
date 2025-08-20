@@ -3,9 +3,9 @@ package middleware
 import "net/http"
 
 // CORS is a middleware that adds Cross-Origin Resource Sharing headers.
-func CORS(allowedOrigins []string, allowedMethods []string, allowedHeaders []string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func CORS(allowedOrigins []string, allowedMethods []string, allowedHeaders []string) Middleware {
+	return func(next http.Handler) (http.Handler, error) {
+		fn := func(w http.ResponseWriter, r *http.Request) {
 			origin := r.Header.Get("Origin")
 			if origin == "" {
 				next.ServeHTTP(w, r)
@@ -38,7 +38,8 @@ func CORS(allowedOrigins []string, allowedMethods []string, allowedHeaders []str
 			}
 
 			next.ServeHTTP(w, r)
-		})
+		}
+		return http.HandlerFunc(fn), nil
 	}
 }
 

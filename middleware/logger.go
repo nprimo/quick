@@ -16,9 +16,9 @@ func (rec *statusRecorder) WriteHeader(code int) {
 	rec.ResponseWriter.WriteHeader(code)
 }
 
-func Logger(log *slog.Logger) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func Logger(log *slog.Logger) Middleware {
+	return func(next http.Handler) (http.Handler, error) {
+		fn := func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now().UTC()
 
 			recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
@@ -31,6 +31,7 @@ func Logger(log *slog.Logger) func(http.Handler) http.Handler {
 				"duration", time.Since(start),
 				"remote_addr", r.RemoteAddr,
 			)
-		})
+		}
+		return http.HandlerFunc(fn), nil
 	}
 }
