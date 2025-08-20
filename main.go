@@ -14,6 +14,8 @@ import (
 	"github.com/nprimo/quick/users"
 )
 
+const LISTENING_PORT = "4321"
+
 func main() {
 	dbConn, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
@@ -39,7 +41,7 @@ func main() {
 
 	server := http.Server{
 		// TODO: make this come from config
-		Addr:         ":4321",
+		Addr:         ":" + LISTENING_PORT,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		Handler:      Router(itemsHandler, usersHandler, sessionsStore, log),

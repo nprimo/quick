@@ -5,7 +5,7 @@ import (
 	"github.com/nprimo/quick/ui"
 )
 
-templ ViewItems(items []Item) {
+templ ViewItems(items []Item, csrfToken string) {
 	@ui.Layout("Items") {
 		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-6xl mx-auto">
 			<div class="flex justify-between items-center mb-6">
@@ -58,9 +58,10 @@ templ ViewItems(items []Item) {
 										Update
 									</a>
 									// Delete button styled in a cautionary red.
-									<a href={ templ.SafeURL(fmt.Sprintf("/items/%d/delete", item.ID)) } class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition">
-										Delete
-									</a>
+									<form action={ templ.SafeURL(fmt.Sprintf("/items/%d/delete", item.ID)) } method="POST" class="inline-block">
+										<input type="hidden" name="csrf_token" value={ csrfToken }/>
+										<input type="submit" value="Delete" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg text-sm transition cursor-pointer"/>
+									</form>
 								</td>
 							</tr>
 						}
@@ -106,11 +107,12 @@ templ ViewItem(item Item) {
 	}
 }
 
-templ AddItem(item Item) {
+templ AddItem(item Item, csrfToken string) {
 	@ui.Layout("Add item") {
 		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
 			<h1 class="text-3xl font-bold text-gray-800 mb-6">Add New Item</h1>
 			<form action="/items/new" method="post" class="space-y-6">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
 				<div>
 					<label for="name" class="block text-sm font-medium text-gray-700">Item name:</label>
 					<input type="text" name="name" id="name" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
@@ -130,11 +132,12 @@ templ AddItem(item Item) {
 	}
 }
 
-templ UpdateItem(item Item) {
+templ UpdateItem(item Item, csrfToken string) {
 	@ui.Layout("Update item") {
 		<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg mx-auto">
 			<h1 class="text-3xl font-bold text-gray-800 mb-6">Update Item</h1>
 			<form action={ templ.SafeURL(fmt.Sprintf("/items/%d", item.ID)) } method="post" class="space-y-6">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
 				<div>
 					<label for="name" class="block text-sm font-medium text-gray-700">Item name:</label>
 					<input type="text" name="name" id="name" value={ item.Name } required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>

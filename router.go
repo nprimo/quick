@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -21,9 +22,17 @@ func Router(
 
 	mux := http.NewServeMux()
 
+	// Sensible defaults for CORS. Customize origins for your specific needs.
+	allowedOrigins := []string{
+		fmt.Sprintf("http://localhost:%s", LISTENING_PORT),
+		fmt.Sprintf("http://127.0.0.1:%s", LISTENING_PORT),
+	}
+	allowedMethods := []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions}
+	allowedHeaders := []string{"Content-Type", "Authorization", "X-CSRF-Token"}
+
 	errorHandler := web.ErrorHandler(log)
 	basicChain := middleware.New(
-		// middleware.CORS(allowedOrigins, allowedMethods, allowedHeaders), // CORS first
+		middleware.CORS(allowedOrigins, allowedMethods, allowedHeaders), // CORS first
 		middleware.Logger(log),
 		middleware.Session(sessionStore),
 	)
@@ -33,12 +42,7 @@ func Router(
 	)
 
 	// Public routes
-	mux.Handle("/", basicChain.Then(errorHandler(func(w http.ResponseWriter, r *http.Request) error {
-		if err := ui.Index().Render(r.Context(), w); err != nil {
-			return web.NewError(http.StatusInternalServerError, err, "")
-		}
-		return nil
-	})))
+	mux.Handle("/", basicChain.Then(errorHandler(indexHandler)))
 	mux.Handle("GET /items", basicChain.Then(errorHandler(itemHandler.ListItems)))
 	mux.Handle("GET /items/{id}", basicChain.Then(errorHandler(itemHandler.GetItem)))
 	mux.Handle("GET /register", basicChain.Then(errorHandler(userHandler.Register)))
@@ -51,8 +55,15 @@ func Router(
 	mux.Handle("POST /items/new", protectedChain.Then(errorHandler(itemHandler.AddItemPost)))
 	mux.Handle("GET /items/{id}/update", protectedChain.Then(errorHandler(itemHandler.UpdateItem)))
 	mux.Handle("POST /items/{id}", protectedChain.Then(errorHandler(itemHandler.UpdateItemPost)))
-	mux.Handle("GET /items/{id}/delete", protectedChain.Then(errorHandler(itemHandler.DeleteItem)))
+	mux.Handle("POST /items/{id}/delete", protectedChain.Then(errorHandler(itemHandler.DeleteItem)))
 	mux.Handle("GET /logout", protectedChain.Then(errorHandler(userHandler.Logout)))
 
 	return mux
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := ui.Index().Render(r.Context(), w); err != nil {
+		return web.NewError(http.StatusInternalServerError, err, "")
+	}
+	return nil
 }

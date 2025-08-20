@@ -8,20 +8,7 @@ package ui
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "context"
-
-const userIDKey = "userID"
-
-func WithUserID(ctx context.Context, userID int) context.Context {
-	return context.WithValue(ctx, userIDKey, userID)
-}
-
-func GetUserID(ctx context.Context) int {
-	if userID, ok := ctx.Value(userIDKey).(int); ok {
-		return userID
-	}
-	return 0
-}
+import "github.com/nprimo/quick/sessions"
 
 func Layout(title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -51,7 +38,7 @@ func Layout(title string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/layout.templ`, Line: 24, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `ui/layout.templ`, Line: 11, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -61,7 +48,7 @@ func Layout(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if GetUserID(ctx) != 0 {
+		if sessions.GetUserID(ctx) != 0 {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<a href=\"/items\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Items</a> <a href=\"/logout\" class=\"px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 transition\">Logout</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

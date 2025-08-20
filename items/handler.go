@@ -30,7 +30,8 @@ func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return web.NewError(http.StatusBadRequest, err, "")
 	}
-	if err := ViewItems(items).Render(r.Context(), w); err != nil {
+	csrfToken := sessions.GetCSRFToken(r.Context())
+	if err := ViewItems(items, csrfToken).Render(r.Context(), w); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
 	return nil
@@ -67,7 +68,8 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	item := Item{}
-	if err := AddItem(item).Render(r.Context(), w); err != nil {
+	csrfToken := sessions.GetCSRFToken(r.Context())
+	if err := AddItem(item, csrfToken).Render(r.Context(), w); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
 	return nil
@@ -108,7 +110,8 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) error {
 		}
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
-	if err := UpdateItem(item).Render(r.Context(), w); err != nil {
+	csrfToken := sessions.GetCSRFToken(r.Context())
+	if err := UpdateItem(item, csrfToken).Render(r.Context(), w); err != nil {
 		return web.NewError(http.StatusInternalServerError, err, "")
 	}
 	return nil

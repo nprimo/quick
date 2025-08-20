@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"net/http"
+	"slices"
 
 	"github.com/nprimo/quick/sessions"
 )
@@ -44,12 +45,19 @@ func CSRF(store sessions.Store) func(http.Handler) http.Handler {
 				session.CSRFToken = token
 				// Save the session (even if it's a new one)
 				if sessionID != "" {
-					_ = store.Save(r.Context(), session)
+					if err = store.Save(r.Context(), session); err != nil {
+						http.Error(w, "failed to save session", http.StatusForbidden)
+						return
+					}
 				}
 			}
 
 			// Validate token for POST requests
-			if r.Method == http.MethodPost {
+			methods := []string{
+				http.MethodDelete,
+				http.MethodPost,
+			}
+			if slices.Contains(methods, r.Method) {
 				submittedToken := r.Header.Get(csrfHeader)
 				if submittedToken == "" {
 					submittedToken = r.FormValue(csrfFormKey)
