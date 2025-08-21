@@ -1,1 +1,0 @@
-ALTER TABLE items ADD COLUMN user_id INTEGER REFERENCES users(id);

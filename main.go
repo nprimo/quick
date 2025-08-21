@@ -8,7 +8,6 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/nprimo/quick/db"
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/sessions"
 	"github.com/nprimo/quick/users"
@@ -17,18 +16,11 @@ import (
 const LISTENING_PORT = "4321"
 
 func main() {
-	dbConn, err := sql.Open("sqlite3", ":memory:")
+	dbConn, err := sql.Open("sqlite3", "dev.db")
 	if err != nil {
 		panic(err)
 	}
-
-	if err := db.Init(dbConn); err != nil {
-		panic(err)
-	}
-	// TODO: make this only if flag enabled (for example)
-	if err := db.Seed(dbConn); err != nil {
-		panic(err)
-	}
+	defer dbConn.Close()
 
 	log := slog.Default()
 

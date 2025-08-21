@@ -4,6 +4,12 @@ A template to start new golang projects.
 
 Use MVC project structure.
 
+## Dependencies
+
+- Templ for UI components with types
+- Goose for DB migrations
+- ...
+
 # TODO
 
 - [ ] add a "error" page to render the message inside a "error layout"
