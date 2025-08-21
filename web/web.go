@@ -3,6 +3,8 @@ package web
 import (
 	"log/slog"
 	"net/http"
+
+	"github.com/nprimo/quick/ui"
 )
 
 type Error struct {
@@ -26,24 +28,31 @@ func NewError(code int, err error, message string) Error {
 	}
 }
 
-// HandlerFuncWithErr is a custom handler function that returns an error.
-// This allows us to centralize error handling.
-type HandlerFuncWithErr func(w http.ResponseWriter, r *http.Request) error
+type HandlerFuncWithError func(w http.ResponseWriter, r *http.Request) error
 
-// ErrorHandler is a middleware that handles errors from HandlerFuncWithErr.
-func ErrorHandler(log *slog.Logger) func(HandlerFuncWithErr) http.Handler {
-	return func(handler HandlerFuncWithErr) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			err := handler(w, r)
-			if err != nil {
-				err, ok := err.(Error)
-				if !ok {
-					log.Error("unknown error",
-						"err", err)
-				}
-				log.Error("ERROR:",
-					"err", err.InternalError)
-			}
-		})
+type ServerMuxError struct {
+	*http.ServeMux
+	log *slog.Logger
+}
+
+func NewServerMuxError(log *slog.Logger) *ServerMuxError {
+	return &ServerMuxError{
+		ServeMux: http.NewServeMux(),
+		log:      log,
 	}
+}
+
+func (s *ServerMuxError) HandleFuncWithError(pattern string, handler HandlerFuncWithError) {
+	s.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+		if err := handler(w, r); err != nil {
+			s.log.Error("error in handler",
+				"err", err,
+				"method", r.Method,
+				"uri", r.RequestURI,
+				"pattern", pattern,
+			)
+			w.WriteHeader(http.StatusInternalServerError)
+			ui.Error(err).Render(r.Context(), w)
+		}
+	})
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/nprimo/quick/items"
 	"github.com/nprimo/quick/middleware"
 	"github.com/nprimo/quick/sessions"
-	"github.com/nprimo/quick/ui"
 	"github.com/nprimo/quick/users"
 	"github.com/nprimo/quick/web"
 )
@@ -65,5 +64,6 @@ func Router(
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) error {
-	return ui.Index().Render(r.Context(), w)
+	return fmt.Errorf("ciao mamma")
+	// return ui.Index().Render(r.Context(), w)
 }

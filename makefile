@@ -1,7 +1,7 @@
 DB_PATH ?= ./dev.db
 
 dev:
-	air
+	air .
 
 # - make change me come from input arg? (nice to have)
 db-create:
