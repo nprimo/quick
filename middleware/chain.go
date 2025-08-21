@@ -1,8 +1,10 @@
 package middleware
 
-import "net/http"
+import (
+	"github.com/nprimo/quick/web"
+)
 
-type Middleware func(http.Handler) (http.Handler, error)
+type Middleware func(next web.HandlerFuncWithError) web.HandlerFuncWithError
 
 type Chain struct {
 	constructors []Middleware
@@ -12,15 +14,11 @@ func New(constructors ...Middleware) Chain {
 	return Chain{constructors: constructors}
 }
 
-func (c Chain) Then(h http.Handler) (http.Handler, error) {
-	var err error
+func (c Chain) Then(h web.HandlerFuncWithError) web.HandlerFuncWithError {
 	for i := range c.constructors {
-		h, err = c.constructors[len(c.constructors)-1-i](h)
-		if err != nil {
-			return nil, err
-		}
+		h = c.constructors[len(c.constructors)-1-i](h)
 	}
-	return h, nil
+	return h
 }
 
 func (c Chain) Append(constructors ...Middleware) Chain {

@@ -20,14 +20,7 @@ func Router(
 	log *slog.Logger,
 ) http.Handler {
 
-	mux := http.NewServeMux()
-
-	must := func(h http.Handler, err error) http.Handler {
-		if err != nil {
-			panic(err)
-		}
-		return h
-	}
+	mux := web.NewServerMuxError(log)
 
 	// Sensible defaults for CORS. Customize origins for your specific needs.
 	allowedOrigins := []string{
@@ -37,7 +30,6 @@ func Router(
 	allowedMethods := []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions}
 	allowedHeaders := []string{"Content-Type", "Authorization", "X-CSRF-Token"}
 
-	errorHandler := web.ErrorHandler(log)
 	basicChain := middleware.New(
 		middleware.Recover(log), // Recover from panics first
 		middleware.CORS(allowedOrigins, allowedMethods, allowedHeaders), // Then CORS
@@ -50,31 +42,28 @@ func Router(
 	)
 
 	// Public routes
-	mux.Handle("/", must(basicChain.Then(errorHandler(indexHandler))))
-	mux.Handle("GET /register", must(basicChain.Then(errorHandler(userHandler.Register))))
-	mux.Handle("POST /register", must(basicChain.Then(errorHandler(userHandler.RegisterPost))))
-	mux.Handle("GET /login", must(basicChain.Then(errorHandler(userHandler.Login))))
-	mux.Handle("POST /login", must(basicChain.Then(errorHandler(userHandler.LoginPost))))
-	mux.Handle("GET /panic", must(basicChain.Then(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) { panic("testing recover") }),
-	)))
+	mux.HandleFuncWithError("/", basicChain.Then(indexHandler))
+	mux.HandleFuncWithError("GET /register", basicChain.Then(userHandler.Register))
+	mux.HandleFuncWithError("POST /register", basicChain.Then(userHandler.RegisterPost))
+	mux.HandleFuncWithError("GET /login", basicChain.Then(userHandler.Login))
+	mux.HandleFuncWithError("POST /login", basicChain.Then(userHandler.LoginPost))
+	mux.HandleFuncWithError("GET /panic", basicChain.Then(func(w http.ResponseWriter, r *http.Request) error {
+		panic("testing recover")
+	}))
 
 	// Protected routes
-	mux.Handle("GET /items", must(protectedChain.Then(errorHandler(itemHandler.ListItems))))
-	mux.Handle("GET /items/{id}", must(protectedChain.Then(errorHandler(itemHandler.GetItem))))
-	mux.Handle("GET /items/new", must(protectedChain.Then(errorHandler(itemHandler.AddItem))))
-	mux.Handle("POST /items/new", must(protectedChain.Then(errorHandler(itemHandler.AddItemPost))))
-	mux.Handle("GET /items/{id}/update", must(protectedChain.Then(errorHandler(itemHandler.UpdateItem))))
-	mux.Handle("POST /items/{id}", must(protectedChain.Then(errorHandler(itemHandler.UpdateItemPost))))
-	mux.Handle("POST /items/{id}/delete", must(protectedChain.Then(errorHandler(itemHandler.DeleteItem))))
-	mux.Handle("GET /logout", must(protectedChain.Then(errorHandler(userHandler.Logout))))
+	mux.HandleFuncWithError("GET /items", protectedChain.Then(itemHandler.ListItems))
+	mux.HandleFuncWithError("GET /items/{id}", protectedChain.Then(itemHandler.GetItem))
+	mux.HandleFuncWithError("GET /items/new", protectedChain.Then(itemHandler.AddItem))
+	mux.HandleFuncWithError("POST /items/new", protectedChain.Then(itemHandler.AddItemPost))
+	mux.HandleFuncWithError("GET /items/{id}/update", protectedChain.Then(itemHandler.UpdateItem))
+	mux.HandleFuncWithError("POST /items/{id}", protectedChain.Then(itemHandler.UpdateItemPost))
+	mux.HandleFuncWithError("POST /items/{id}/delete", protectedChain.Then(itemHandler.DeleteItem))
+	mux.HandleFuncWithError("GET /logout", protectedChain.Then(userHandler.Logout))
 
 	return mux
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) error {
-	if err := ui.Index().Render(r.Context(), w); err != nil {
-		return web.NewError(http.StatusInternalServerError, err, "")
-	}
-	return nil
+	return ui.Index().Render(r.Context(), w)
 }

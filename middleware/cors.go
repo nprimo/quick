@@ -1,15 +1,18 @@
 package middleware
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/nprimo/quick/web"
+)
 
 // CORS is a middleware that adds Cross-Origin Resource Sharing headers.
 func CORS(allowedOrigins []string, allowedMethods []string, allowedHeaders []string) Middleware {
-	return func(next http.Handler) (http.Handler, error) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+	return func(next web.HandlerFuncWithError) web.HandlerFuncWithError {
+		return func(w http.ResponseWriter, r *http.Request) error {
 			origin := r.Header.Get("Origin")
 			if origin == "" {
-				next.ServeHTTP(w, r)
-				return
+				return next(w, r)
 			}
 
 			// Check if origin is allowed
@@ -23,7 +26,7 @@ func CORS(allowedOrigins []string, allowedMethods []string, allowedHeaders []str
 
 			if !isOriginAllowed {
 				http.Error(w, "Forbidden", http.StatusForbidden)
-				return
+				return nil
 			}
 
 			w.Header().Set("Access-Control-Allow-Origin", origin)
@@ -34,12 +37,11 @@ func CORS(allowedOrigins []string, allowedMethods []string, allowedHeaders []str
 				w.Header().Set("Access-Control-Allow-Headers", joinStrings(allowedHeaders, ","))
 				w.Header().Set("Access-Control-Max-Age", "86400") // 24 hours
 				w.WriteHeader(http.StatusOK)
-				return
+				return nil
 			}
 
-			next.ServeHTTP(w, r)
+			return next(w, r)
 		}
-		return http.HandlerFunc(fn), nil
 	}
 }
 

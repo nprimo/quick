@@ -4,11 +4,13 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
+
+	"github.com/nprimo/quick/web"
 )
 
 func Recover(log *slog.Logger) Middleware {
-	return func(next http.Handler) (http.Handler, error) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+	return func(next web.HandlerFuncWithError) web.HandlerFuncWithError {
+		return func(w http.ResponseWriter, r *http.Request) (err error) {
 			defer func() {
 				if rvr := recover(); rvr != nil {
 					log.Error("panic recovered",
@@ -18,8 +20,7 @@ func Recover(log *slog.Logger) Middleware {
 					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				}
 			}()
-			next.ServeHTTP(w, r)
+			return next(w, r)
 		}
-		return http.HandlerFunc(fn), nil
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"slices"
 
 	"github.com/nprimo/quick/sessions"
+	"github.com/nprimo/quick/web"
 )
 
 const (
@@ -16,8 +17,8 @@ const (
 
 // CSRF is a middleware that provides Cross-Site Request Forgery protection.
 func CSRF(store sessions.Store) Middleware {
-	return func(next http.Handler) (http.Handler, error) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+	return func(next web.HandlerFuncWithError) web.HandlerFuncWithError {
+		return func(w http.ResponseWriter, r *http.Request) error {
 			// Get session ID from cookie
 			cookie, err := r.Cookie("session_id")
 			var sessionID string
@@ -39,7 +40,7 @@ func CSRF(store sessions.Store) Middleware {
 				token, err = generateCSRFToken()
 				if err != nil {
 					http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-					return
+					return nil
 				}
 				// Update session with new token
 				session.CSRFToken = token
@@ -47,7 +48,7 @@ func CSRF(store sessions.Store) Middleware {
 				if sessionID != "" {
 					if err = store.Save(r.Context(), session); err != nil {
 						http.Error(w, "failed to save session", http.StatusForbidden)
-						return
+						return nil
 					}
 				}
 			}
@@ -65,15 +66,14 @@ func CSRF(store sessions.Store) Middleware {
 
 				if submittedToken != token {
 					http.Error(w, "CSRF token mismatch", http.StatusForbidden)
-					return
+					return nil
 				}
 			}
 
 			// Add token to context for templates
 			ctx := sessions.WithCSRFToken(r.Context(), token)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			return next(w, r.WithContext(ctx))
 		}
-		return http.HandlerFunc(fn), nil
 	}
 }
 

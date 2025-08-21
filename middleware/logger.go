@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/nprimo/quick/web"
 )
 
 type statusRecorder struct {
@@ -17,12 +19,12 @@ func (rec *statusRecorder) WriteHeader(code int) {
 }
 
 func Logger(log *slog.Logger) Middleware {
-	return func(next http.Handler) (http.Handler, error) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+	return func(next web.HandlerFuncWithError) web.HandlerFuncWithError {
+		return func(w http.ResponseWriter, r *http.Request) error {
 			start := time.Now().UTC()
 
 			recorder := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
-			next.ServeHTTP(recorder, r)
+			err := next(recorder, r)
 
 			log.Info("request",
 				"method", r.Method,
@@ -31,7 +33,7 @@ func Logger(log *slog.Logger) Middleware {
 				"duration", time.Since(start),
 				"remote_addr", r.RemoteAddr,
 			)
+			return err
 		}
-		return http.HandlerFunc(fn), nil
 	}
 }

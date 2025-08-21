@@ -5,32 +5,29 @@ import (
 	"time"
 
 	"github.com/nprimo/quick/sessions"
+	"github.com/nprimo/quick/web"
 )
 
 func Session(store sessions.Store) Middleware {
-	return func(next http.Handler) (http.Handler, error) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+	return func(next web.HandlerFuncWithError) web.HandlerFuncWithError {
+		return func(w http.ResponseWriter, r *http.Request) error {
 			cookie, err := r.Cookie("session_id")
 			if err != nil {
-				next.ServeHTTP(w, r)
-				return
+				return next(w, r)
 			}
 
 			session, err := store.Get(r.Context(), cookie.Value)
 			if err != nil {
-				next.ServeHTTP(w, r)
-				return
+				return next(w, r)
 			}
 
 			if session.ExpiresAt.Before(time.Now()) {
 				_ = store.Delete(r.Context(), session.ID)
-				next.ServeHTTP(w, r)
-				return
+				return next(w, r)
 			}
 
 			ctx := sessions.WithUserID(r.Context(), session.UserID)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			return next(w, r.WithContext(ctx))
 		}
-		return http.HandlerFunc(fn), nil
 	}
 }
